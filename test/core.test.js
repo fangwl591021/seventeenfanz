@@ -136,8 +136,15 @@ test("latest video reply is a five-theme Flex carousel with LIFF links", () => {
   assert.equal(message.type, "flex");
   assert.equal(message.contents.type, "carousel");
   assert.equal(message.contents.contents.length, 5);
+  assert.ok(message.contents.contents.every((bubble) => bubble.hero?.type === "image" && bubble.hero.url.startsWith("https://")));
   const links = message.contents.contents.map((bubble) => bubble.footer.contents[0].action.uri);
   assert.deepEqual(links, ["https://liff.line.me/123-test/videos?theme=music", "https://liff.line.me/123-test/videos?theme=stage", "https://liff.line.me/123-test/videos?theme=going", "https://liff.line.me/123-test/videos?theme=behind", "https://liff.line.me/123-test/videos?theme=fullmoon"]);
+});
+
+test("video Flex keeps official fallback covers when recent data has no matching theme", () => {
+  const message = buildVideoCarousel([], { LIFF_ID: "123-test" });
+  assert.equal(message.contents.contents.length, 5);
+  assert.ok(message.contents.contents.every((bubble) => /^https:\/\/i\.ytimg\.com\/vi\/.+\/hqdefault\.jpg$/.test(bubble.hero.url)));
 });
 
 test("video themes and years classify deterministically", () => {

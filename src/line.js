@@ -64,6 +64,14 @@ const youtubeId = (value) => {
   return "";
 };
 
+const FLEX_FALLBACK_IMAGES = {
+  music: "https://i.ytimg.com/vi/1biFgI-pC3U/hqdefault.jpg",
+  stage: "https://i.ytimg.com/vi/03QqmKNX5Uw/hqdefault.jpg",
+  going: "https://i.ytimg.com/vi/5rNSal9lUPI/hqdefault.jpg",
+  behind: "https://i.ytimg.com/vi/g98veDN9sHQ/hqdefault.jpg",
+  fullmoon: "https://i.ytimg.com/vi/eov9udX0PO4/hqdefault.jpg"
+};
+
 async function queryVideos(db) {
   if (!db) return [];
   return (await db.prepare("SELECT source_id,title_zh_tw,title_original,summary_zh_tw,canonical_url,image_url,published_at,fetched_at FROM news_items WHERE status='approved' AND category='video' ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT 60").all()).results || [];
@@ -75,11 +83,11 @@ export function buildVideoCarousel(items = [], env = {}) {
     const videos = items.filter((item) => classifyVideoTheme(item) === key);
     const lead = videos[0] || {};
     const id = youtubeId(lead.canonical_url);
-    const image = lead.image_url || (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "");
+    const image = lead.image_url || (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : FLEX_FALLBACK_IMAGES[key]);
     return {
       type: "bubble",
       size: "kilo",
-      ...(image ? { hero: { type: "image", url: image, size: "full", aspectRatio: "16:9", aspectMode: "cover", action: { type: "uri", uri: `${liffBase}/videos?theme=${key}` } } } : {}),
+      hero: { type: "image", url: image, size: "full", aspectRatio: "16:9", aspectMode: "cover", action: { type: "uri", uri: `${liffBase}/videos?theme=${key}` } },
       body: { type: "box", layout: "vertical", spacing: "sm", contents: [
         { type: "text", text: theme.title, weight: "bold", size: "xl", color: "#262442", wrap: true },
         { type: "text", text: theme.subtitle, size: "sm", color: "#68657b", wrap: true },
