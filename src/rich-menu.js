@@ -12,7 +12,7 @@ const pages = {
     ["切換最新情報",28,28,1213,220,"news"],["應援專區頁",1259,28,1213,220,"support"],
     ["本週應援任務",28,272,960,1386,"/projects"],["演唱會與售票",1012,272,718,519,"/calendar?category=concert"],
     ["新歌與專輯",1754,272,718,519,"/news?category=release"],["投票任務",1012,815,718,519,"/projects?category=vote"],
-    ["應援企劃",1754,815,718,519,"/projects?category=support"],["通知與本命設定",1012,1358,1460,300,"/settings"]
+    ["應援企劃",1754,815,718,519,"/projects?category=support"],["CARAT 收藏市集",1012,1358,1460,300,"/market"]
   ]
 };
 

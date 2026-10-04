@@ -137,6 +137,8 @@ test("runtime rich menus preserve all actions and the share route", () => {
   assert.equal(definitions.news.areas[1].action.type, "richmenuswitch");
   const latestVideo = definitions.news.areas.find((area) => area.action.label === "最新影片");
   assert.deepEqual(latestVideo.action, { type: "message", label: "最新影片", text: "最新影片" });
+  const market = definitions.support.areas.find((area) => area.action.label === "CARAT 收藏市集");
+  assert.equal(market.action.uri, "https://liff.line.me/123-test/market");
 });
 
 test("latest video reply is a five-theme Flex carousel with LIFF links", () => {

@@ -26,7 +26,7 @@
         { "label": "新歌與專輯", "bounds": { "x": 1754, "y": 272, "width": 718, "height": 519 }, "action": "uri:/news?category=release" },
         { "label": "投票任務", "bounds": { "x": 1012, "y": 815, "width": 718, "height": 519 }, "action": "uri:/projects?category=vote" },
         { "label": "應援企劃", "bounds": { "x": 1754, "y": 815, "width": 718, "height": 519 }, "action": "uri:/projects?category=support" },
-        { "label": "通知與本命設定", "bounds": { "x": 1012, "y": 1358, "width": 1460, "height": 300 }, "action": "uri:/settings" }
+        { "label": "CARAT 收藏市集", "bounds": { "x": 1012, "y": 1358, "width": 1460, "height": 300 }, "action": "uri:/market" }
       ]
     }
   ]

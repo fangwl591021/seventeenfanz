@@ -35,7 +35,7 @@ body {
   background: rgba(255,255,255,.78);
   box-shadow: 0 16px 42px rgba(78, 86, 148, .14);
   color: #68729b;
-  font-size: 54px;
+  font-size: 72px;
   font-weight: 820;
   letter-spacing: .05em;
 }
@@ -90,7 +90,7 @@ body {
   align-items: center;
   gap: 18px;
   color: #786fa5;
-  font-size: 27px;
+  font-size: 34px;
   font-weight: 760;
   letter-spacing: .08em;
 }
@@ -110,14 +110,14 @@ body {
 .eyebrow {
   margin-bottom: 22px;
   color: #d26799;
-  font-size: 27px;
+  font-size: 36px;
   font-weight: 850;
   letter-spacing: .18em;
 }
 .hero h1 {
   margin: 0 0 30px;
   color: #303d70;
-  font-size: 102px;
+  font-size: 126px;
   line-height: 1.12;
   letter-spacing: -.04em;
 }
@@ -125,7 +125,7 @@ body {
   margin: 0;
   max-width: 700px;
   color: #5d678e;
-  font-size: 34px;
+  font-size: 43px;
   font-weight: 610;
   line-height: 1.65;
 }
@@ -139,7 +139,7 @@ body {
   border-radius: 28px;
   color: white;
   background: linear-gradient(135deg, #d97fa8, #718fca);
-  font-size: 41px;
+  font-size: 54px;
   font-weight: 850;
 }
 
@@ -163,19 +163,19 @@ body {
 .card.lilac { background: rgba(246,240,255,.94); color: #65558b; }
 .card.pearl { background: rgba(255,252,248,.94); color: #6b5a79; }
 .card .icon {
-  font-size: 64px;
+  font-size: 78px;
   font-weight: 500;
   line-height: 1;
 }
 .card h2 {
   margin: 0;
-  font-size: 54px;
+  font-size: 72px;
   line-height: 1.18;
   letter-spacing: -.02em;
 }
 .card p {
   margin: 12px 0 0;
-  font-size: 27px;
+  font-size: 35px;
   font-weight: 590;
   line-height: 1.42;
   opacity: .82;
@@ -192,7 +192,7 @@ body {
 }
 .share .share-copy { display: flex; align-items: center; gap: 30px; }
 .share .icon { font-size: 76px; }
-.share h2 { font-size: 61px; }
+.share h2 { font-size: 76px; }
 .share p { color: rgba(255,255,255,.88); opacity: 1; }
 .share .arrow { font-size: 82px; font-weight: 350; }
 
