@@ -143,6 +143,9 @@ test("video themes and years classify deterministically", () => {
   assert.equal(classifyVideoTheme({ title_zh_tw: "OFFICIAL MV" }), "music");
   assert.equal(classifyVideoTheme({ title_zh_tw: "Performance Rehearsal" }), "stage");
   assert.equal(classifyVideoTheme({ title_zh_tw: "GOING SEVENTEEN" }), "going");
+  assert.equal(classifyVideoTheme({ title_original: "NANA TOUR with SEVENTEEN" }), "going");
+  assert.equal(classifyVideoTheme({ title_original: "The Game Caterers 2 X SEVENTEEN" }), "going");
+  assert.equal(classifyVideoTheme({ title_original: "나나민박 with 세븐틴" }), "going");
   assert.equal(classifyVideoTheme({ canonical_url: "https://youtube.com/shorts/abc" }), "behind");
   assert.deepEqual(Object.keys(groupVideosByYear([{ title_zh_tw: "Official MV", published_at: "2025-01-01" }], "music")), ["2025"]);
 });

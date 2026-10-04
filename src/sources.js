@@ -8,7 +8,8 @@ export const SOURCE_REGISTRY = [
   { id: "svt-japan-schedule", name: "SEVENTEEN 日本官網行程", url: "https://www.seventeen-17.jp/posts/schedule", kind: "html", parser: "japan-schedule", category: "concert", trustTier: 1, autoApprove: true },
   { id: "svt-japan-discography", name: "SEVENTEEN 日本官網作品", url: "https://www.seventeen-17.jp/posts/discography", kind: "html", parser: "japan-discography", category: "release", trustTier: 1, autoApprove: true },
   { id: "svt-japan-cheer", name: "SEVENTEEN 日本官網應援方法", url: "https://www.seventeen-17.jp/posts/call", kind: "html", parser: "japan-call", category: "support", trustTier: 1, autoApprove: true },
-  { id: "youtube-official", name: "SEVENTEEN 官方 YouTube", kind: "youtube", category: "video", trustTier: 1, autoApprove: true }
+  { id: "youtube-official", name: "SEVENTEEN 官方 YouTube", kind: "youtube", category: "video", trustTier: 1, autoApprove: true },
+  { id: "youtube-fullmoon", name: "채널십오야／Channel Fullmoon", url: "https://www.youtube.com/@15ya_egg", kind: "youtube-channel-filter", channelId: "UCQ2O-iftmnlfrBuNsUUTofQ", category: "video", trustTier: 1, autoApprove: true }
 ];
 
 const MEMBER_ALIASES = {
@@ -144,11 +145,13 @@ export async function translateWithGemini(item, env) {
 }
 
 export async function collectSource(source, env) {
-  const url = source.kind === "youtube"
-    ? `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(env.YOUTUBE_CHANNEL_ID || "UCfkXDY7vwkcJ8ddFGz8KusA")}`
+  const isYouTube = source.kind === "youtube" || source.kind === "youtube-channel-filter";
+  const url = isYouTube
+    ? `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(source.channelId || env.YOUTUBE_CHANNEL_ID || "UCfkXDY7vwkcJ8ddFGz8KusA")}`
     : source.url;
   const body = await fetchWithTimeout(url);
-  const raw = source.kind === "youtube" ? parseYouTubeFeed(body) : parseOfficialHtml(body, source);
+  let raw = isYouTube ? parseYouTubeFeed(body) : parseOfficialHtml(body, source);
+  if (source.kind === "youtube-channel-filter") raw = raw.filter((item) => /SEVENTEEN|세븐틴|NANA\s*(?:TOUR|BNB)|나나(?:투어|민박)|출장\s*십오야|GAME\s*CATERERS|SVT\s*RETREAT/i.test(`${item.title} ${item.summary || ""}`));
   return Promise.all(raw.slice(0, 20).map(async (item) => {
     const canonicalUrl = canonicalizeUrl(item.url);
     const contentHash = await sha256(`${canonicalUrl}|${normalizeTitle(item.title)}`);
@@ -191,7 +194,7 @@ async function saveItems(db, items) {
 
 export async function translateHistoricalVideos(env, limit = 30) {
   if (!env.DB || !env.GEMINI_API_KEY) return { processed: 0, remaining: 0, configured: false };
-  const rows = (await env.DB.prepare("SELECT id,title_original,published_at FROM news_items WHERE source_id='youtube-official' AND summary_zh_tw='待中文化' ORDER BY published_at DESC LIMIT ?").bind(Math.max(1, Math.min(Number(limit) || 30, 60))).all()).results || [];
+  const rows = (await env.DB.prepare("SELECT id,title_original,published_at FROM news_items WHERE source_id LIKE 'youtube-%' AND summary_zh_tw='待中文化' ORDER BY published_at DESC LIMIT ?").bind(Math.max(1, Math.min(Number(limit) || 30, 60))).all()).results || [];
   if (!rows.length) return { processed: 0, remaining: 0, configured: true };
   const prompt = `你是 SEVENTEEN 繁體中文影音資料編輯。將輸入陣列逐筆整理成繁體中文，保留歌曲名、節目名、成員名與專有名詞；韓文或英文的類型描述可翻譯。不可添加輸入沒有的事實。輸出 JSON 陣列，每筆只能有 id、title_zh_tw、summary_zh_tw；summary_zh_tw 以一句繁體中文說明這是官方 YouTube 影片，80字內。必須保留每個 id，順序相同。\n輸入：${JSON.stringify(rows)}`;
   const model = env.GEMINI_MODEL || "gemini-3.5-flash-lite";
@@ -211,7 +214,7 @@ export async function translateHistoricalVideos(env, limit = 30) {
     return env.DB.prepare("UPDATE news_items SET title_zh_tw=?,summary_zh_tw=? WHERE id=? AND summary_zh_tw='待中文化'").bind(title,summary,row.id);
   });
   await env.DB.batch(statements);
-  const remaining = await env.DB.prepare("SELECT COUNT(*) count FROM news_items WHERE source_id='youtube-official' AND summary_zh_tw='待中文化'").first();
+  const remaining = await env.DB.prepare("SELECT COUNT(*) count FROM news_items WHERE source_id LIKE 'youtube-%' AND summary_zh_tw='待中文化'").first();
   return { processed: rows.length, remaining: Number(remaining?.count || 0), configured: true };
 }
 
