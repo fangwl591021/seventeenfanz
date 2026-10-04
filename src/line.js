@@ -1,5 +1,5 @@
 import { readTextBounded } from "./lib.js";
-import { classifyVideoTheme, VIDEO_THEMES } from "./video-library.js";
+import { classifyVideoTheme, selectPublicContent, VIDEO_THEMES } from "./video-library.js";
 
 function fromBase64(value) {
   const binary = atob(value);
@@ -75,10 +75,12 @@ const FLEX_FALLBACK_IMAGES = {
 
 async function queryVideos(db) {
   if (!db) return [];
-  return (await db.prepare("SELECT source_id,title_zh_tw,title_original,summary_zh_tw,canonical_url,image_url,published_at,fetched_at FROM news_items WHERE status='approved' AND category='video' ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT 60").all()).results || [];
+  const rows = (await db.prepare("SELECT source_id,title_zh_tw,title_original,summary_zh_tw,canonical_url,image_url,published_at,fetched_at FROM news_items WHERE status='approved' AND category='video' ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT 5000").all()).results || [];
+  return selectPublicContent(rows);
 }
 
 export function buildVideoCarousel(items = [], env = {}) {
+  items = selectPublicContent(items);
   const liffBase = env.LIFF_ID ? `https://liff.line.me/${encodeURIComponent(env.LIFF_ID)}` : String(env.PUBLIC_BASE_URL || "").replace(/\/$/, "");
   const bubbles = Object.entries(VIDEO_THEMES).map(([key, theme]) => {
     const videos = items.filter((item) => classifyVideoTheme(item) === key);

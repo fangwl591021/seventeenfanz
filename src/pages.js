@@ -68,15 +68,19 @@ export function newsPage(items = [], options = {}) {
 
 export function videoLibraryPage(items = [], options = {}) {
   const selected = VIDEO_THEMES[options.theme] ? options.theme : "music";
-  const tabs = Object.entries(VIDEO_THEMES).map(([key, theme]) => `<a class="${key === selected ? "active" : ""}" href="/videos?theme=${key}">${escapeHtml(theme.title)}</a>`).join("");
+  const format = ["preview", "clip"].includes(options.format) ? options.format : "main";
+  const suffix = format === "main" ? "" : `&format=${format}`;
+  const tabs = Object.entries(VIDEO_THEMES).map(([key, theme]) => `<a class="${key === selected ? "active" : ""}" href="/videos?theme=${key}${suffix}">${escapeHtml(theme.title)}</a>`).join("");
+  const formats = [["main","正片／一般影片"],["preview","預告／宣傳"],["clip","短片／精華"]].map(([key,label]) => `<a class="${key === format ? "active" : ""}" href="/videos?theme=${selected}&format=${key}">${label}</a>`).join("");
   const groups = groupVideosByYear(items, selected);
   const years = Object.keys(groups).sort((a, b) => b.localeCompare(a, "zh-Hant", { numeric: true }));
   const selectedYear = years.includes(options.year) ? options.year : years[0];
-  const yearTabs = years.map((year) => `<a class="${year === selectedYear ? "active" : ""}" href="/videos?theme=${selected}&year=${encodeURIComponent(year)}">${escapeHtml(year)}（${groups[year].length}）</a>`).join("");
+  const yearTabs = years.map((year) => `<a class="${year === selectedYear ? "active" : ""}" href="/videos?theme=${selected}&year=${encodeURIComponent(year)}${suffix}">${escapeHtml(year)}（${groups[year].length}）</a>`).join("");
   const visible = selectedYear ? groups[selectedYear] : [];
   const sections = selectedYear ? `<nav class="year-tabs" aria-label="年份">${yearTabs}</nav><section class="year-section"><h2 class="year-heading">${escapeHtml(selectedYear)}</h2><div class="video-library">${visible.map((item) => `<article class="video-tile">${videoFrame(item, itemTitle(item))}<div class="video-tile-body"><h3>${escapeHtml(itemTitle(item))}</h3><span class="meta">${escapeHtml((item.published_at || item.fetched_at || "").slice(0,10))} · 官方 YouTube</span></div></article>`).join("")}</div></section>` : "";
-  const empty = `<div class="empty"><h2>這個分類正在收集中</h2><p>新收錄的官方影片會自動依年份排列在這裡。</p></div>`;
-  return layout(`${VIDEO_THEMES[selected].title}影片`, `<main class="wrap section"><nav class="video-tabs" aria-label="影片主題">${tabs}</nav>${sections || empty}</main>`);
+  const empty = `<div class="empty"><p>這個分類目前沒有符合的影片，可切換內容類型查看。</p></div>`;
+  const fullVod = selected === "fullmoon" && format === "main" ? `<section class="grid"><a class="card" href="https://weverse.io/seventeen/notice/16873?hl=zh-cn" target="_blank" rel="noopener noreferrer"><span class="tag">官方完整版・需購買</span><h2>NANA TOUR</h2><p>完整 VOD 在 Weverse 觀看。YouTube 的預告與先行片段另列於「預告／宣傳」。</p></a><a class="card" href="https://weverse.io/seventeen/notice/27538?hl=zh-cn" target="_blank" rel="noopener noreferrer"><span class="tag">官方完整版・需購買</span><h2>NANA bnb</h2><p>官方完整 VOD 觀看指南與入口。使用購買內容的 Weverse 帳號觀看。</p></a></section>` : "";
+  return layout(`${VIDEO_THEMES[selected].title}影片`, `<main class="wrap section"><nav class="video-tabs" aria-label="影片主題">${tabs}</nav><nav class="video-tabs" aria-label="內容類型">${formats}</nav>${fullVod}${sections || empty}</main>`);
 }
 
 export function membersPage() {

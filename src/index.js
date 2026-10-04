@@ -4,6 +4,7 @@ import { publishRichMenus } from "./rich-menu.js";
 import { adminLoginPage, adminPage, homePage, marketNewPage, marketPage, membersPage, newsPage, sharePage, simplePage, videoLibraryPage } from "./pages.js";
 import { constantTimeEqual, json, sha256 } from "./lib.js";
 import { createMarketListing, getMarketImage, queryMarketListings, uploadMarketImage } from "./market.js";
+import { selectPublicContent } from "./video-library.js";
 
 const html = (body, status = 200, headers = {}) => new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", ...headers } });
 
@@ -12,18 +13,24 @@ async function getNews(env, url, status = "approved") {
   const conditions = ["n.status=?"], values = [status];
   const category = url.searchParams.get("category");
   const member = url.searchParams.get("member");
+  // The undated back catalogue belongs to its dedicated library, not today's news feed.
+  if (!category && status === "approved") conditions.push("n.category<>'support' AND (n.category<>'release' OR n.published_at IS NOT NULL)");
   // 「官方公告」代表可信的官方來源，而不只是被歸到 official 的單一分類。
   // 日本官網的發行、活動、影片等文章仍應出現在這個總覽中。
   if (category === "official") conditions.push("s.trust_tier=1 AND s.kind<>'youtube'");
   else if (category) { conditions.push("n.category=?"); values.push(category); }
   if (member) { conditions.push("n.member_tags LIKE ?"); values.push(`%${member}%`); }
-  const limit = category === "video" ? 3000 : 60;
-  return (await env.DB.prepare(`WITH ranked AS (
+  const limit = category === "video" || !category ? 5000 : 300;
+  const rows = (await env.DB.prepare(`WITH ranked AS (
     SELECT n.*,s.name source_name,
       ROW_NUMBER() OVER (PARTITION BY COALESCE(n.cluster_id,n.id) ORDER BY COALESCE(n.published_at,n.fetched_at) DESC,n.id) event_rank
     FROM news_items n LEFT JOIN sources s ON s.id=n.source_id
     WHERE ${conditions.join(" AND ")}
   ) SELECT * FROM ranked WHERE event_rank=1 ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT ${limit}`).bind(...values).all()).results || [];
+  if (status !== "approved") return rows.slice(0, 60);
+  const format = ["all", "preview", "clip"].includes(url.searchParams.get("format")) ? url.searchParams.get("format") : "main";
+  const selected = selectPublicContent(rows, format);
+  return category === "video" ? selected : selected.slice(0, 60);
 }
 
 async function sessionValid(request, env) {
@@ -193,7 +200,8 @@ async function route(request, env, ctx) {
   if (path === "/videos") {
     const theme = url.searchParams.get("theme") || "music";
     url.searchParams.set("category", "video");
-    return html(videoLibraryPage(await getNews(env, url), { theme, year: url.searchParams.get("year") || "" }));
+    const format = ["preview", "clip"].includes(url.searchParams.get("format")) ? url.searchParams.get("format") : "main";
+    return html(videoLibraryPage(await getNews(env, url), { theme, format, year: url.searchParams.get("year") || "" }));
   }
   if (path === "/members") return html(membersPage());
   if (path === "/market") return html(marketPage(await queryMarketListings(env)));

@@ -9,7 +9,30 @@ import { route } from "../src/index.js";
 import { buildRichMenuDefinitions } from "../src/rich-menu.js";
 import { homePage, marketPage, membersPage, newsPage, simplePage, videoLibraryPage } from "../src/pages.js";
 import { containsOffPlatformContact } from "../src/market.js";
-import { classifyVideoTheme, groupVideosByYear } from "../src/video-library.js";
+import { classifyVideoTheme, groupVideosByYear, selectPublicContent, videoFormat } from "../src/video-library.js";
+
+test("public content separates teasers and Shorts and deduplicates YouTube URL variants", () => {
+  const rows = [
+    { source_id: "official", category: "video", title_original: "Song MV Teaser #1", canonical_url: "https://www.youtube.com/watch?v=teaser" },
+    { source_id: "official", category: "video", title_original: "GOING SEVENTEEN EP.1 #shorts", canonical_url: "https://www.youtube.com/shorts/clip" },
+    { source_id: "official", category: "video", title_original: "GOING SEVENTEEN EP.1", canonical_url: "https://www.youtube.com/watch?v=episode1" },
+    { source_id: "other", category: "video", title_original: "Same video, alternate title", canonical_url: "https://youtu.be/episode1?si=tracking" },
+    { source_id: "official", category: "video", title_original: "GOING SEVENTEEN EP.2", canonical_url: "https://www.youtube.com/watch?v=episode2" }
+  ];
+  assert.deepEqual(selectPublicContent(rows).map(x => x.title_original), ["GOING SEVENTEEN EP.1", "GOING SEVENTEEN EP.2"]);
+  assert.equal(selectPublicContent(rows, "preview").length, 1);
+  assert.equal(selectPublicContent(rows, "clip").length, 1);
+  assert.equal(videoFormat({title_original:"NANA TOUR Episode 1 Pre-release"}), "preview");
+  assert.equal(classifyVideoTheme({title_original:"INSIDE SEVENTEEN Performance Sketch"}), "behind");
+});
+
+test("default news filtering happens before the display limit", async () => {
+  const teaser = {category:"video",source_id:"official",title_original:"MV Teaser",canonical_url:"https://youtube.com/watch?v=teaser"};
+  const episode = {category:"video",source_id:"official",title_original:"GOING SEVENTEEN EP.1",canonical_url:"https://youtube.com/watch?v=episode"};
+  const db = { prepare() { return {bind() {return this;}, async all() {return {results:[teaser,episode]};}};}};
+  const response = await route(new Request("https://example.com/api/news"), {DB:db}, {waitUntil(){}});
+  assert.deepEqual((await response.json()).items, [episode]);
+});
 
 test("canonical URL removes tracking and fragments", () => {
   assert.equal(canonicalizeUrl("https://EXAMPLE.com/news/?utm_source=x&id=2#top"), "https://example.com/news?id=2");
