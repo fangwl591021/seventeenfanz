@@ -4,10 +4,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { canonicalizeUrl, constantTimeEqual, normalizeTitle } from "../src/lib.js";
 import { extractMemberTags, parseJapanCall, parseJapanDiscography, parseJapanNews, parseJapanSchedule, parseYouTubeFeed } from "../src/sources.js";
-import { buildReply, verifyLineSignature } from "../src/line.js";
+import { buildReply, buildVideoCarousel, verifyLineSignature } from "../src/line.js";
 import { route } from "../src/index.js";
 import { buildRichMenuDefinitions } from "../src/rich-menu.js";
-import { homePage, membersPage, newsPage, simplePage } from "../src/pages.js";
+import { homePage, membersPage, newsPage, simplePage, videoLibraryPage } from "../src/pages.js";
+import { classifyVideoTheme, groupVideosByYear } from "../src/video-library.js";
 
 test("canonical URL removes tracking and fragments", () => {
   assert.equal(canonicalizeUrl("https://EXAMPLE.com/news/?utm_source=x&id=2#top"), "https://example.com/news?id=2");
@@ -119,6 +120,38 @@ test("runtime rich menus preserve all actions and the share route", () => {
   assert.equal(definitions.support.areas.length, 8);
   assert.equal(definitions.news.areas.find((area) => area.action.label === "分享好友").action.uri, "https://liff.line.me/123-test/share");
   assert.equal(definitions.news.areas[1].action.type, "richmenuswitch");
+  const latestVideo = definitions.news.areas.find((area) => area.action.label === "最新影片");
+  assert.deepEqual(latestVideo.action, { type: "message", label: "最新影片", text: "最新影片" });
+});
+
+test("latest video reply is a four-theme Flex carousel with LIFF links", () => {
+  const items = [
+    { title_zh_tw: "SEVENTEEN 'HOT' Official MV", canonical_url: "https://www.youtube.com/watch?v=music1", published_at: "2025-01-02" },
+    { title_zh_tw: "GOING SEVENTEEN EP.1", canonical_url: "https://www.youtube.com/watch?v=going1", published_at: "2024-01-02" },
+    { title_zh_tw: "DANCE PRACTICE", canonical_url: "https://www.youtube.com/watch?v=stage1", published_at: "2023-01-02" },
+    { title_zh_tw: "Recording Sketch", canonical_url: "https://www.youtube.com/watch?v=behind1", published_at: "2022-01-02" }
+  ];
+  const message = buildVideoCarousel(items, { LIFF_ID: "123-test", PUBLIC_BASE_URL: "https://example.com" });
+  assert.equal(message.type, "flex");
+  assert.equal(message.contents.type, "carousel");
+  assert.equal(message.contents.contents.length, 4);
+  const links = message.contents.contents.map((bubble) => bubble.footer.contents[0].action.uri);
+  assert.deepEqual(links, ["https://liff.line.me/123-test/videos?theme=music", "https://liff.line.me/123-test/videos?theme=stage", "https://liff.line.me/123-test/videos?theme=going", "https://liff.line.me/123-test/videos?theme=behind"]);
+});
+
+test("video themes and years classify deterministically", () => {
+  assert.equal(classifyVideoTheme({ title_zh_tw: "OFFICIAL MV" }), "music");
+  assert.equal(classifyVideoTheme({ title_zh_tw: "Performance Rehearsal" }), "stage");
+  assert.equal(classifyVideoTheme({ title_zh_tw: "GOING SEVENTEEN" }), "going");
+  assert.equal(classifyVideoTheme({ canonical_url: "https://youtube.com/shorts/abc" }), "behind");
+  assert.deepEqual(Object.keys(groupVideosByYear([{ title_zh_tw: "Official MV", published_at: "2025-01-01" }], "music")), ["2025"]);
+});
+
+test("LIFF video library groups embedded official videos by year", () => {
+  const html = videoLibraryPage([{ title_zh_tw: "Official MV", canonical_url: "https://www.youtube.com/watch?v=abc123", published_at: "2025-02-03" }], { theme: "music" });
+  assert.match(html, />2025</);
+  assert.match(html, /youtube-nocookie\.com\/embed\/abc123/);
+  assert.match(html, /\/videos\?theme=going/);
 });
 
 test("LIFF state routes directly without a transition page", async () => {

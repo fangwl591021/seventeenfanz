@@ -1,7 +1,7 @@
 import { collectAll, SOURCE_REGISTRY } from "./sources.js";
 import { handleWebhook } from "./line.js";
 import { publishRichMenus } from "./rich-menu.js";
-import { adminLoginPage, adminPage, homePage, membersPage, newsPage, sharePage, simplePage } from "./pages.js";
+import { adminLoginPage, adminPage, homePage, membersPage, newsPage, sharePage, simplePage, videoLibraryPage } from "./pages.js";
 import { constantTimeEqual, json, sha256 } from "./lib.js";
 
 const html = (body, status = 200, headers = {}) => new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", ...headers } });
@@ -173,7 +173,11 @@ async function route(request, env, ctx) {
     const categoryTitle = { official: "官方公告", concert: "演唱會與活動", release: "新歌與作品", support: "官方應援方法", vote: "投票任務", video: "最新影片" }[category];
     return html(newsPage(items, { title: member ? `${member} 相關情報` : (categoryTitle || "最新情報"), notice, category }));
   }
-  if (path === "/videos") { url.searchParams.set("category", "video"); return html(newsPage(await getNews(env, url), { title: "最新影片", category: "video" })); }
+  if (path === "/videos") {
+    const theme = url.searchParams.get("theme") || "music";
+    url.searchParams.set("category", "video");
+    return html(videoLibraryPage(await getNews(env, url), { theme }));
+  }
   if (path === "/members") return html(membersPage());
   if (path === "/calendar") return html(simplePage("活動行事曆", "只整理有明確來源與日期的活動；售票規則請以主辦單位公告為準。", [["演唱會與售票","已審核的場次、售票與入場提醒。","/news?category=concert"],["新歌與專輯","發行日期與官方收聽入口。","/news?category=release"]]));
   if (path === "/projects") return html(simplePage("CARAT 應援專區", "只呈現已有官方來源的應援與作品資訊，不放置尚無內容的空入口。", [["官方應援方法","查看官方歌曲應援口號與教學。","/news?category=support"],["新歌與作品","查看最新作品與官方來源。","/news?category=release"]]));

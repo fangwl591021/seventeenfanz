@@ -9,7 +9,7 @@
         { "label": "切換應援專區", "bounds": { "x": 1259, "y": 28, "width": 1213, "height": 220 }, "action": "page:support" },
         { "label": "今日最新情報", "bounds": { "x": 28, "y": 272, "width": 960, "height": 1386 }, "action": "uri:/news" },
         { "label": "官方公告", "bounds": { "x": 1012, "y": 272, "width": 718, "height": 499 }, "action": "uri:/news?category=official" },
-        { "label": "最新影片", "bounds": { "x": 1754, "y": 272, "width": 718, "height": 499 }, "action": "uri:/videos" },
+        { "label": "最新影片", "bounds": { "x": 1754, "y": 272, "width": 718, "height": 499 }, "action": "message:最新影片" },
         { "label": "13位成員", "bounds": { "x": 1012, "y": 795, "width": 718, "height": 499 }, "action": "uri:/members" },
         { "label": "活動行事曆", "bounds": { "x": 1754, "y": 795, "width": 718, "height": 499 }, "action": "uri:/calendar" },
         { "label": "分享好友", "bounds": { "x": 1012, "y": 1318, "width": 1460, "height": 340 }, "action": "uri:/share" }

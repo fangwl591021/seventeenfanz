@@ -5,7 +5,7 @@ const pages = {
   news: [
     ["最新情報頁",28,28,1213,220,"news"],["切換應援專區",1259,28,1213,220,"support"],
     ["今日最新情報",28,272,960,1386,"/news"],["官方公告",1012,272,718,499,"/news?category=official"],
-    ["最新影片",1754,272,718,499,"/videos"],["13位成員",1012,795,718,499,"/members"],
+    ["最新影片",1754,272,718,499,"message:最新影片"],["13位成員",1012,795,718,499,"/members"],
     ["活動行事曆",1754,795,718,499,"/calendar"],["分享好友",1012,1318,1460,340,"/share"]
   ],
   support: [
@@ -24,7 +24,9 @@ export function buildRichMenuDefinitions(baseUrl, liffId = "") {
     chatBarText: page === "news" ? "最新情報" : "應援專區",
     areas: entries.map(([label,x,y,width,height,target]) => ({ bounds: { x,y,width,height }, action: target.startsWith("/")
       ? { type: "uri", label, uri: `${internalBase}${target}` }
-      : { type: "richmenuswitch", label, richMenuAliasId: `carat-${target}`, data: `richmenu-switch=${target}` }
+      : target.startsWith("message:")
+        ? { type: "message", label, text: target.slice(8) }
+        : { type: "richmenuswitch", label, richMenuAliasId: `carat-${target}`, data: `richmenu-switch=${target}` }
     }))
   }]));
 }

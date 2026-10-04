@@ -1,4 +1,5 @@
 import { readTextBounded } from "./lib.js";
+import { classifyVideoTheme, VIDEO_THEMES } from "./video-library.js";
 
 function fromBase64(value) {
   const binary = atob(value);
@@ -52,8 +53,47 @@ export async function buildReply(text, env) {
   return await aiAnswer(normalized, rows, env) || `目前已審核資料中還找不到足夠依據，我不會自行猜測。可以先查看最新情報，或稍後再問：\n${base}/news`;
 }
 
-async function replyMessage(replyToken, text, token) {
-  const response = await fetch("https://api.line.me/v2/bot/message/reply", { method: "POST", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify({ replyToken, messages: [{ type: "text", text }] }) });
+const videoKeyword = /^(最新影片|影片|youtube|mv|going)$/i;
+
+const youtubeId = (value) => {
+  try {
+    const url = new URL(String(value || ""));
+    if (url.hostname === "youtu.be") return url.pathname.split("/").filter(Boolean)[0] || "";
+    if (url.hostname.includes("youtube.com")) return url.searchParams.get("v") || url.pathname.match(/\/(?:shorts|embed)\/([^/?]+)/)?.[1] || "";
+  } catch {}
+  return "";
+};
+
+async function queryVideos(db) {
+  if (!db) return [];
+  return (await db.prepare("SELECT title_zh_tw,title_original,summary_zh_tw,canonical_url,image_url,published_at,fetched_at FROM news_items WHERE status='approved' AND category='video' ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT 60").all()).results || [];
+}
+
+export function buildVideoCarousel(items = [], env = {}) {
+  const liffBase = env.LIFF_ID ? `https://liff.line.me/${encodeURIComponent(env.LIFF_ID)}` : String(env.PUBLIC_BASE_URL || "").replace(/\/$/, "");
+  const bubbles = Object.entries(VIDEO_THEMES).map(([key, theme]) => {
+    const videos = items.filter((item) => classifyVideoTheme(item) === key);
+    const lead = videos[0] || {};
+    const id = youtubeId(lead.canonical_url);
+    const image = lead.image_url || (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "");
+    return {
+      type: "bubble",
+      size: "kilo",
+      ...(image ? { hero: { type: "image", url: image, size: "full", aspectRatio: "16:9", aspectMode: "cover", action: { type: "uri", uri: `${liffBase}/videos?theme=${key}` } } } : {}),
+      body: { type: "box", layout: "vertical", spacing: "sm", contents: [
+        { type: "text", text: theme.title, weight: "bold", size: "xl", color: "#262442", wrap: true },
+        { type: "text", text: theme.subtitle, size: "sm", color: "#68657b", wrap: true },
+        { type: "text", text: `${videos.length} 部已整理影片`, size: "xs", color: theme.color, weight: "bold", margin: "md" }
+      ] },
+      footer: { type: "box", layout: "vertical", contents: [{ type: "button", style: "primary", color: theme.color, action: { type: "uri", label: "依年份開啟", uri: `${liffBase}/videos?theme=${key}` } }] }
+    };
+  });
+  return { type: "flex", altText: "SEVENTEEN 最新影片四大主題", contents: { type: "carousel", contents: bubbles } };
+}
+
+async function replyMessage(replyToken, message, token) {
+  const messages = [typeof message === "string" ? { type: "text", text: message } : message];
+  const response = await fetch("https://api.line.me/v2/bot/message/reply", { method: "POST", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify({ replyToken, messages }) });
   if (!response.ok) throw new Error(`LINE reply HTTP ${response.status}`);
 }
 
@@ -63,7 +103,8 @@ export async function handleWebhook(request, env, ctx) {
   const payload = JSON.parse(raw);
   for (const event of payload.events || []) {
     if (event.type === "message" && event.message?.type === "text" && event.replyToken) {
-      const answer = await buildReply(event.message.text, env);
+      const normalized = String(event.message.text || "").trim();
+      const answer = videoKeyword.test(normalized) ? buildVideoCarousel(await queryVideos(env.DB), env) : await buildReply(normalized, env);
       await replyMessage(event.replyToken, answer, env.LINE_CHANNEL_ACCESS_TOKEN);
       if (env.DB && event.source?.userId) ctx.waitUntil(env.DB.prepare("INSERT OR IGNORE INTO subscribers (line_user_id) VALUES (?)").bind(event.source.userId).run());
     }

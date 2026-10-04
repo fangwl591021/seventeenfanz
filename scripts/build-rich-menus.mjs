@@ -15,7 +15,9 @@ for (const page of actionMap.pages) {
       bounds: area.bounds,
       action: area.action.startsWith("uri:")
         ? { type: "uri", label: area.label, uri: `${base}${area.action.slice(4)}` }
-        : { type: "richmenuswitch", label: area.label, richMenuAliasId: `carat-${area.action.slice(5)}`, data: `richmenu-switch=${area.action.slice(5)}` }
+        : area.action.startsWith("message:")
+          ? { type: "message", label: area.label, text: area.action.slice(8) }
+          : { type: "richmenuswitch", label: area.label, richMenuAliasId: `carat-${area.action.slice(5)}`, data: `richmenu-switch=${area.action.slice(5)}` }
     }))
   };
   fs.mkdirSync(path.join(root, "dist", "rich-menu"), { recursive: true });
