@@ -1,0 +1,33 @@
+{
+  "size": { "width": 2500, "height": 1686 },
+  "pages": [
+    {
+      "id": "news",
+      "image": "seventeen-rich-menu-news.png",
+      "areas": [
+        { "label": "最新情報頁", "bounds": { "x": 28, "y": 28, "width": 1213, "height": 220 }, "action": "page:news" },
+        { "label": "切換應援專區", "bounds": { "x": 1259, "y": 28, "width": 1213, "height": 220 }, "action": "page:support" },
+        { "label": "今日最新情報", "bounds": { "x": 28, "y": 272, "width": 960, "height": 1386 }, "action": "uri:/news" },
+        { "label": "官方公告", "bounds": { "x": 1012, "y": 272, "width": 718, "height": 499 }, "action": "uri:/news?category=official" },
+        { "label": "最新影片", "bounds": { "x": 1754, "y": 272, "width": 718, "height": 499 }, "action": "uri:/videos" },
+        { "label": "13位成員", "bounds": { "x": 1012, "y": 795, "width": 718, "height": 499 }, "action": "uri:/members" },
+        { "label": "活動行事曆", "bounds": { "x": 1754, "y": 795, "width": 718, "height": 499 }, "action": "uri:/calendar" },
+        { "label": "分享好友", "bounds": { "x": 1012, "y": 1318, "width": 1460, "height": 340 }, "action": "uri:/share" }
+      ]
+    },
+    {
+      "id": "support",
+      "image": "seventeen-rich-menu-support.png",
+      "areas": [
+        { "label": "切換最新情報", "bounds": { "x": 28, "y": 28, "width": 1213, "height": 220 }, "action": "page:news" },
+        { "label": "應援專區頁", "bounds": { "x": 1259, "y": 28, "width": 1213, "height": 220 }, "action": "page:support" },
+        { "label": "本週應援任務", "bounds": { "x": 28, "y": 272, "width": 960, "height": 1386 }, "action": "uri:/projects" },
+        { "label": "演唱會與售票", "bounds": { "x": 1012, "y": 272, "width": 718, "height": 519 }, "action": "uri:/calendar?category=concert" },
+        { "label": "新歌與專輯", "bounds": { "x": 1754, "y": 272, "width": 718, "height": 519 }, "action": "uri:/news?category=release" },
+        { "label": "投票任務", "bounds": { "x": 1012, "y": 815, "width": 718, "height": 519 }, "action": "uri:/projects?category=vote" },
+        { "label": "應援企劃", "bounds": { "x": 1754, "y": 815, "width": 718, "height": 519 }, "action": "uri:/projects?category=support" },
+        { "label": "通知與本命設定", "bounds": { "x": 1012, "y": 1358, "width": 1460, "height": 300 }, "action": "uri:/settings" }
+      ]
+    }
+  ]
+}

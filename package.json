@@ -1,0 +1,17 @@
+{
+  "name": "seventeen-carat-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "node scripts/build-rich-menus.mjs && node --test",
+    "check": "node --check src/index.js && node --check src/frontend-proxy.js && npm test",
+    "deploy:dry": "wrangler deploy --dry-run --outdir dist/worker",
+    "menu:build": "node scripts/build-rich-menus.mjs",
+    "menu:publish": "node scripts/publish-rich-menus.mjs --confirm"
+  },
+  "devDependencies": {
+    "wrangler": "4.147.0"
+  }
+}

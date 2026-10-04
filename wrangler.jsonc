@@ -1,0 +1,51 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "joson-care",
+	"main": "src/index.js",
+	"compatibility_date": "2026-10-04",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"workers_dev": true,
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS",
+		"run_worker_first": [
+			"/api/*",
+			"/webhook",
+			"/line-webhook",
+			"/admin*",
+			"/health",
+			"/cron/*"
+		]
+	},
+	"triggers": {
+		"crons": [
+			"0 */3 * * *"
+		]
+	},
+	"vars": {
+		"APP_NAME": "SEVENTEEN CARAT 繁中情報站",
+		"PUBLIC_BASE_URL": "https://seventeenfanz.fangwl591021.workers.dev",
+		"LIFF_ID": "2011335134-vQ4CQiOV",
+		"COLLECTION_ENABLED": "true",
+		"GEMINI_MODEL": "gemini-3.5-flash-lite",
+		"YOUTUBE_CHANNEL_ID": "UCfkXDY7vwkcJ8ddFGz8KusA"
+	},
+	"observability": {
+		"enabled": true,
+		"logs": {
+			"enabled": true
+		},
+		"traces": {
+			"enabled": true
+		}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "seventeen-carat-hub-db",
+			"database_id": "7f51ae5b-9dc6-4ec8-acd7-69442061fcda"
+		}
+	]
+}

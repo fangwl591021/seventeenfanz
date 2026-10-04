@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "seventeenfanz",
+  "main": "src/frontend-proxy.js",
+  "compatibility_date": "2026-10-04",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true
+    },
+    "traces": {
+      "enabled": true
+    }
+  },
+  "services": [
+    {
+      "binding": "ORIGIN",
+      "service": "joson-care"
+    }
+  ]
+}
