@@ -1,14 +1,16 @@
 export const VIDEO_THEMES = {
   music: { title: "歌曲／MV", subtitle: "官方 MV、歌曲影片與作品影像", color: "#c9578e" },
   stage: { title: "舞台表演", subtitle: "舞台、舞蹈與 Performance 影片", color: "#566fa7" },
-  going: { title: "綜藝／GOING", subtitle: "GOING SEVENTEEN、NANA 系列與出差十五夜", color: "#7358a6" },
-  behind: { title: "幕後／短影音", subtitle: "花絮、預告、紀錄與 Shorts", color: "#487e78" }
+  going: { title: "GOING SEVENTEEN", subtitle: "GOING SEVENTEEN 官方綜藝", color: "#7358a6" },
+  behind: { title: "幕後／短影音", subtitle: "花絮、預告、紀錄與 Shorts", color: "#487e78" },
+  fullmoon: { title: "羅 PD × SEVENTEEN", subtitle: "NANA 系列、出差十五夜與羅 PD 合作綜藝", color: "#e0739a" }
 };
 
 export function classifyVideoTheme(item = {}) {
   const text = `${item.title_zh_tw || ""} ${item.title_original || ""} ${item.summary_zh_tw || ""}`;
   const url = String(item.canonical_url || "");
-  if (/GOING\s*SEVENTEEN|GOING_SVT|고잉\s*세븐틴|꼬잉_픽|NANA\s*(?:TOUR|BNB)|나나(?:투어|민박)|출장\s*십오야|GAME\s*CATERERS|SVT\s*RETREAT|COMMUNICATION\s*CATERERS/i.test(text)) return "going";
+  if (item.source_id === "youtube-fullmoon") return "fullmoon";
+  if (/GOING\s*SEVENTEEN|GOING_SVT|고잉\s*세븐틴|꼬잉_픽/i.test(text)) return "going";
   if (/DANCE\s*PRACTICE|舞蹈影片|PERFORMANCE|REHEARSAL|STAGE|LIVE\s*CLIP|CHOREOGRAPHY|MOVING\s*VER/i.test(text)) return "stage";
   if (/OFFICIAL\s*(?:M\/V|MV)|MUSIC\s*VIDEO|LYRIC\s*VIDEO|OFFICIAL\s*AUDIO|TRACK\s*VIDEO|SPECIAL\s*VIDEO|VERTICAL\s*VIDEO|\s-\s['\u2018\u2019\u201c\u201d]/i.test(text)) return "music";
   if (/\/shorts\//i.test(url) || /SHORTS?|BEHIND|SKETCH|PREVIEW|TEASER|RECORDING|MAKING|花絮|幕後/i.test(text)) return "behind";

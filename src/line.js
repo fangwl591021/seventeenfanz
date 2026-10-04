@@ -66,7 +66,7 @@ const youtubeId = (value) => {
 
 async function queryVideos(db) {
   if (!db) return [];
-  return (await db.prepare("SELECT title_zh_tw,title_original,summary_zh_tw,canonical_url,image_url,published_at,fetched_at FROM news_items WHERE status='approved' AND category='video' ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT 60").all()).results || [];
+  return (await db.prepare("SELECT source_id,title_zh_tw,title_original,summary_zh_tw,canonical_url,image_url,published_at,fetched_at FROM news_items WHERE status='approved' AND category='video' ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT 60").all()).results || [];
 }
 
 export function buildVideoCarousel(items = [], env = {}) {
@@ -88,7 +88,7 @@ export function buildVideoCarousel(items = [], env = {}) {
       footer: { type: "box", layout: "vertical", contents: [{ type: "button", style: "primary", color: theme.color, action: { type: "uri", label: "依年份開啟", uri: `${liffBase}/videos?theme=${key}` } }] }
     };
   });
-  return { type: "flex", altText: "SEVENTEEN 最新影片四大主題", contents: { type: "carousel", contents: bubbles } };
+  return { type: "flex", altText: "SEVENTEEN 最新影片五大主題", contents: { type: "carousel", contents: bubbles } };
 }
 
 async function replyMessage(replyToken, message, token) {

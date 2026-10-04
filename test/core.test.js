@@ -124,28 +124,29 @@ test("runtime rich menus preserve all actions and the share route", () => {
   assert.deepEqual(latestVideo.action, { type: "message", label: "最新影片", text: "最新影片" });
 });
 
-test("latest video reply is a four-theme Flex carousel with LIFF links", () => {
+test("latest video reply is a five-theme Flex carousel with LIFF links", () => {
   const items = [
     { title_zh_tw: "SEVENTEEN 'HOT' Official MV", canonical_url: "https://www.youtube.com/watch?v=music1", published_at: "2025-01-02" },
     { title_zh_tw: "GOING SEVENTEEN EP.1", canonical_url: "https://www.youtube.com/watch?v=going1", published_at: "2024-01-02" },
     { title_zh_tw: "DANCE PRACTICE", canonical_url: "https://www.youtube.com/watch?v=stage1", published_at: "2023-01-02" },
-    { title_zh_tw: "Recording Sketch", canonical_url: "https://www.youtube.com/watch?v=behind1", published_at: "2022-01-02" }
+    { title_zh_tw: "Recording Sketch", canonical_url: "https://www.youtube.com/watch?v=behind1", published_at: "2022-01-02" },
+    { source_id: "youtube-fullmoon", title_zh_tw: "NANA TOUR", canonical_url: "https://www.youtube.com/watch?v=fullmoon1", published_at: "2024-01-03" }
   ];
   const message = buildVideoCarousel(items, { LIFF_ID: "123-test", PUBLIC_BASE_URL: "https://example.com" });
   assert.equal(message.type, "flex");
   assert.equal(message.contents.type, "carousel");
-  assert.equal(message.contents.contents.length, 4);
+  assert.equal(message.contents.contents.length, 5);
   const links = message.contents.contents.map((bubble) => bubble.footer.contents[0].action.uri);
-  assert.deepEqual(links, ["https://liff.line.me/123-test/videos?theme=music", "https://liff.line.me/123-test/videos?theme=stage", "https://liff.line.me/123-test/videos?theme=going", "https://liff.line.me/123-test/videos?theme=behind"]);
+  assert.deepEqual(links, ["https://liff.line.me/123-test/videos?theme=music", "https://liff.line.me/123-test/videos?theme=stage", "https://liff.line.me/123-test/videos?theme=going", "https://liff.line.me/123-test/videos?theme=behind", "https://liff.line.me/123-test/videos?theme=fullmoon"]);
 });
 
 test("video themes and years classify deterministically", () => {
   assert.equal(classifyVideoTheme({ title_zh_tw: "OFFICIAL MV" }), "music");
   assert.equal(classifyVideoTheme({ title_zh_tw: "Performance Rehearsal" }), "stage");
   assert.equal(classifyVideoTheme({ title_zh_tw: "GOING SEVENTEEN" }), "going");
-  assert.equal(classifyVideoTheme({ title_original: "NANA TOUR with SEVENTEEN" }), "going");
-  assert.equal(classifyVideoTheme({ title_original: "The Game Caterers 2 X SEVENTEEN" }), "going");
-  assert.equal(classifyVideoTheme({ title_original: "나나민박 with 세븐틴" }), "going");
+  assert.equal(classifyVideoTheme({ source_id: "youtube-fullmoon", title_original: "NANA TOUR with SEVENTEEN" }), "fullmoon");
+  assert.equal(classifyVideoTheme({ source_id: "youtube-fullmoon", title_original: "The Game Caterers 2 X SEVENTEEN" }), "fullmoon");
+  assert.equal(classifyVideoTheme({ source_id: "youtube-fullmoon", title_original: "나나민박 with 세븐틴" }), "fullmoon");
   assert.equal(classifyVideoTheme({ canonical_url: "https://youtube.com/shorts/abc" }), "behind");
   assert.deepEqual(Object.keys(groupVideosByYear([{ title_zh_tw: "Official MV", published_at: "2025-01-01" }], "music")), ["2025"]);
 });
