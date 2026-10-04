@@ -7,7 +7,7 @@ import { extractMemberTags, parseJapanCall, parseJapanDiscography, parseJapanNew
 import { buildReply, verifyLineSignature } from "../src/line.js";
 import { route } from "../src/index.js";
 import { buildRichMenuDefinitions } from "../src/rich-menu.js";
-import { homePage, newsPage } from "../src/pages.js";
+import { homePage, membersPage, newsPage, simplePage } from "../src/pages.js";
 
 test("canonical URL removes tracking and fragments", () => {
   assert.equal(canonicalizeUrl("https://EXAMPLE.com/news/?utm_source=x&id=2#top"), "https://example.com/news?id=2");
@@ -137,4 +137,14 @@ test("media pages render a privacy-enhanced video embed and lazy thumbnails", ()
   assert.match(home, /loading="lazy"/);
   assert.match(home, /cover\.jpg/);
   assert.match(videos, /allowfullscreen/);
+});
+
+test("public list pages open directly on content without decorative page headers", () => {
+  const news = newsPage([], { title: "最新情報" });
+  const members = membersPage();
+  const simple = simplePage("活動行事曆", "活動說明", [["售票資訊", "查看日期", "/news"]]);
+  for (const page of [news, members, simple]) assert.doesNotMatch(page, /<section class="hero">/);
+  assert.doesNotMatch(news, /VERIFIED SOURCES/);
+  assert.doesNotMatch(members, /13 MEMBERS/);
+  assert.doesNotMatch(simple, /CARAT HUB/);
 });

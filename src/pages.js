@@ -60,15 +60,15 @@ export function newsPage(items = [], options = {}) {
   const featured = videoLead ? `<section class="featured">${videoFrame(videoLead,itemTitle(videoLead))}<h2>${escapeHtml(itemTitle(videoLead))}</h2><p>${escapeHtml(videoLead.summary_zh_tw || "")}</p></section>` : "";
   const rest = videoLead ? items.slice(1) : items;
   const content = rest.length ? rest.map(newsCard).join("") : (featured ? "" : `<div class="empty"><h2>尚無已審核情報</h2><p>完成資料蒐集與審核後，消息會出現在這裡。</p></div>`);
-  return layout(title, `<main class="wrap"><section class="hero"><div class="eyebrow">VERIFIED SOURCES</div><h1>${escapeHtml(title)}</h1><p>圖片、影音與繁中摘要集中呈現；每則內容仍保留原始官方來源。</p></section>${notice}${featured}<section class="news-grid">${content}</section></main>`);
+  return layout(title, `<main class="wrap section">${notice}${featured}<section class="news-grid">${content}</section></main>`);
 }
 
 export function membersPage() {
-  return layout("13位成員", `<main class="wrap"><section class="hero"><div class="eyebrow">13 MEMBERS</div><h1>依本命查看</h1><p>選擇成員後，顯示相關且已審核的消息與影音。</p></section><section class="grid members">${members.map((name) => `<a class="card member" href="/news?member=${encodeURIComponent(name)}">${name}</a>`).join("")}</section></main>`);
+  return layout("13位成員", `<main class="wrap section"><section class="grid members">${members.map((name) => `<a class="card member" href="/news?member=${encodeURIComponent(name)}">${name}</a>`).join("")}</section></main>`);
 }
 
 export function simplePage(title, intro, links = []) {
-  return layout(title, `<main class="wrap"><section class="hero"><div class="eyebrow">CARAT HUB</div><h1>${escapeHtml(title)}</h1><p>${escapeHtml(intro)}</p></section><section class="grid">${links.map(([name, text, href]) => `<a class="card" href="${escapeHtml(href)}"><h2>${escapeHtml(name)}</h2><p>${escapeHtml(text)}</p></a>`).join("")}</section></main>`);
+  return layout(title, `<main class="wrap section"><section class="grid">${links.map(([name, text, href]) => `<a class="card" href="${escapeHtml(href)}"><h2>${escapeHtml(name)}</h2><p>${escapeHtml(text)}</p></a>`).join("")}</section></main>`);
 }
 
 export function sharePage(liffId, publicBaseUrl) {
