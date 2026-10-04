@@ -83,7 +83,7 @@ export function buildVideoCarousel(items = [], env = {}) {
       body: { type: "box", layout: "vertical", spacing: "sm", contents: [
         { type: "text", text: theme.title, weight: "bold", size: "xl", color: "#262442", wrap: true },
         { type: "text", text: theme.subtitle, size: "sm", color: "#68657b", wrap: true },
-        { type: "text", text: `${videos.length} 部已整理影片`, size: "xs", color: theme.color, weight: "bold", margin: "md" }
+        { type: "text", text: "歷年官方影片完整整理", size: "xs", color: theme.color, weight: "bold", margin: "md" }
       ] },
       footer: { type: "box", layout: "vertical", contents: [{ type: "button", style: "primary", color: theme.color, action: { type: "uri", label: "依年份開啟", uri: `${liffBase}/videos?theme=${key}` } }] }
     };

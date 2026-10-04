@@ -148,9 +148,14 @@ test("video themes and years classify deterministically", () => {
 });
 
 test("LIFF video library groups embedded official videos by year", () => {
-  const html = videoLibraryPage([{ title_zh_tw: "Official MV", canonical_url: "https://www.youtube.com/watch?v=abc123", published_at: "2025-02-03" }], { theme: "music" });
-  assert.match(html, />2025</);
-  assert.match(html, /youtube-nocookie\.com\/embed\/abc123/);
+  const html = videoLibraryPage([
+    { title_zh_tw: "Official MV", canonical_url: "https://www.youtube.com/watch?v=abc123", published_at: "2025-02-03" },
+    { title_zh_tw: "Official MV 2", canonical_url: "https://www.youtube.com/watch?v=def456", published_at: "2024-02-03" }
+  ], { theme: "music", year: "2024" });
+  assert.match(html, /2025（1）/);
+  assert.match(html, /2024（1）/);
+  assert.doesNotMatch(html, /youtube-nocookie\.com\/embed\/abc123/);
+  assert.match(html, /youtube-nocookie\.com\/embed\/def456/);
   assert.match(html, /\/videos\?theme=going/);
 });
 

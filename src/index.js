@@ -16,12 +16,13 @@ async function getNews(env, url, status = "approved") {
   if (category === "official") conditions.push("s.trust_tier=1 AND s.kind<>'youtube'");
   else if (category) { conditions.push("n.category=?"); values.push(category); }
   if (member) { conditions.push("n.member_tags LIKE ?"); values.push(`%${member}%`); }
+  const limit = category === "video" ? 3000 : 60;
   return (await env.DB.prepare(`WITH ranked AS (
     SELECT n.*,s.name source_name,
       ROW_NUMBER() OVER (PARTITION BY COALESCE(n.cluster_id,n.id) ORDER BY COALESCE(n.published_at,n.fetched_at) DESC,n.id) event_rank
     FROM news_items n LEFT JOIN sources s ON s.id=n.source_id
     WHERE ${conditions.join(" AND ")}
-  ) SELECT * FROM ranked WHERE event_rank=1 ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT 60`).bind(...values).all()).results || [];
+  ) SELECT * FROM ranked WHERE event_rank=1 ORDER BY COALESCE(published_at,fetched_at) DESC LIMIT ${limit}`).bind(...values).all()).results || [];
 }
 
 async function sessionValid(request, env) {
@@ -176,7 +177,7 @@ async function route(request, env, ctx) {
   if (path === "/videos") {
     const theme = url.searchParams.get("theme") || "music";
     url.searchParams.set("category", "video");
-    return html(videoLibraryPage(await getNews(env, url), { theme }));
+    return html(videoLibraryPage(await getNews(env, url), { theme, year: url.searchParams.get("year") || "" }));
   }
   if (path === "/members") return html(membersPage());
   if (path === "/calendar") return html(simplePage("活動行事曆", "只整理有明確來源與日期的活動；售票規則請以主辦單位公告為準。", [["演唱會與售票","已審核的場次、售票與入場提醒。","/news?category=concert"],["新歌與專輯","發行日期與官方收聽入口。","/news?category=release"]]));

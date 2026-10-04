@@ -26,3 +26,15 @@ npx.cmd wrangler deploy --dry-run
 6. 完成測試後部署 Worker，再由管理頁建立及發布兩頁圖文選單。
 
 目前正式後端沿用既有 `joson-care` Worker，以保留原 LINE OA、LIFF 與 Worker secrets；資料層綁定獨立的 `seventeen-carat-hub-db`。對外網址由 `seventeenfanz` Worker 提供，並透過 Service Binding 連回正式後端。
+
+## 官方 YouTube 歷史回填
+
+一般排程用官方 RSS 收錄新影片；重建官方頻道完整歷史資料時依序執行：
+
+```powershell
+node scripts/scan-youtube-history.mjs
+node scripts/complete-youtube-history.mjs
+node scripts/build-youtube-import.mjs
+```
+
+再以 Wrangler 將 `dist/youtube-history-sql/*.sql` 套用到指定的 D1。匯入以影片網址及固定 ID 去重，可安全重跑；標記為「待中文化」的歷史項目會由排程使用 Gemini 分批轉為繁體中文。
