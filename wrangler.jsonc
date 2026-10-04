@@ -47,5 +47,11 @@
 			"database_name": "seventeen-carat-hub-db",
 			"database_id": "7f51ae5b-9dc6-4ec8-acd7-69442061fcda"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MARKET_IMAGES",
+			"bucket_name": "seventeen-carat-market-images"
+		}
 	]
 }

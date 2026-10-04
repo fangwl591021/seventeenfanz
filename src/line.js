@@ -19,6 +19,7 @@ const keywordRoutes = [
   { test: /影片|youtube|mv|going/i, text: "最新官方影片", path: "/videos" },
   { test: /演唱會|售票|行程|活動/, text: "活動與售票行事曆", path: "/calendar" },
   { test: /應援|投票/, text: "CARAT 應援專區", path: "/projects" },
+  { test: /市集|商城|收藏品|交易/, text: "CARAT 收藏市集", path: "/market" },
   { test: /分享|好友/, text: "分享給 CARAT 好友", path: "/share" }
 ];
 

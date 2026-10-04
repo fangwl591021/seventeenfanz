@@ -7,7 +7,8 @@ import { extractMemberTags, parseJapanCall, parseJapanDiscography, parseJapanNew
 import { buildReply, buildVideoCarousel, verifyLineSignature } from "../src/line.js";
 import { route } from "../src/index.js";
 import { buildRichMenuDefinitions } from "../src/rich-menu.js";
-import { homePage, membersPage, newsPage, simplePage, videoLibraryPage } from "../src/pages.js";
+import { homePage, marketPage, membersPage, newsPage, simplePage, videoLibraryPage } from "../src/pages.js";
+import { containsOffPlatformContact } from "../src/market.js";
 import { classifyVideoTheme, groupVideosByYear } from "../src/video-library.js";
 
 test("canonical URL removes tracking and fragments", () => {
@@ -68,6 +69,20 @@ test("out-of-scope LINE question is declined", async () => {
   const reply = await buildReply("請幫我寫股票投資建議", { PUBLIC_BASE_URL: "https://example.com" });
   assert.match(reply, /只提供|專門整理/);
   assert.match(reply, /\/news/);
+});
+
+test("marketplace blocks off-platform contact details", () => {
+  assert.equal(containsOffPlatformContact("請加 LINE ID：carat123 私下交易"), true);
+  assert.equal(containsOffPlatformContact("聯絡電話 0912-345-678"), true);
+  assert.equal(containsOffPlatformContact("官方小卡保存良好，四角無折損"), false);
+});
+
+test("marketplace page explains fee-only model and keeps contact private", () => {
+  const page = marketPage([{ id: "one", title: "官方小卡", description: "保存良好且無明顯折損", category: "小卡", item_condition: "good", price_twd: 300, seller_name: "CARAT A", image_keys: [] }]);
+  assert.match(page, /免費上架/);
+  assert.match(page, /成交時收取平台交易手續費/);
+  assert.match(page, /不公開聯絡方式/);
+  assert.doesNotMatch(page, /line_user_id/);
 });
 
 test("health route reports unconfigured production bindings", async () => {

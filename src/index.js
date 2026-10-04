@@ -1,8 +1,9 @@
 import { collectAll, SOURCE_REGISTRY } from "./sources.js";
 import { handleWebhook } from "./line.js";
 import { publishRichMenus } from "./rich-menu.js";
-import { adminLoginPage, adminPage, homePage, membersPage, newsPage, sharePage, simplePage, videoLibraryPage } from "./pages.js";
+import { adminLoginPage, adminPage, homePage, marketNewPage, marketPage, membersPage, newsPage, sharePage, simplePage, videoLibraryPage } from "./pages.js";
 import { constantTimeEqual, json, sha256 } from "./lib.js";
+import { createMarketListing, getMarketImage, queryMarketListings, uploadMarketImage } from "./market.js";
 
 const html = (body, status = 200, headers = {}) => new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", ...headers } });
 
@@ -123,6 +124,14 @@ async function route(request, env, ctx) {
   if ((path === "/webhook" || path === "/line-webhook") && request.method === "POST") return handleWebhook(request, env, ctx);
   if (path === "/api/news") return json({ items: await getNews(env, url), databaseConfigured: Boolean(env.DB) });
   if (path === "/api/sources") return json({ sources: SOURCE_REGISTRY });
+  if (path === "/api/market/listings" && request.method === "GET") return json({ items: await queryMarketListings(env), databaseConfigured: Boolean(env.DB) });
+  if (path === "/api/market/listings" && request.method === "POST") return createMarketListing(request, env);
+  if (path === "/api/market/images" && request.method === "POST") return uploadMarketImage(request, env);
+  if (path.startsWith("/market/image/") && request.method === "GET") {
+    let key = "";
+    try { key = decodeURIComponent(path.slice("/market/image/".length)); } catch { return new Response("Not Found", { status: 404 }); }
+    return getMarketImage(request, env, key);
+  }
   if (path === "/cron/collect" && request.method === "POST") {
     if (!env.ADMIN_ACCESS_KEY || request.headers.get("authorization") !== `Bearer ${env.ADMIN_ACCESS_KEY}`) return json({ error: "unauthorized" }, 401);
     return json({ results: await collectAll(env) });
@@ -141,15 +150,22 @@ async function route(request, env, ctx) {
       await env.DB.prepare("UPDATE news_items SET status=? WHERE id=?").bind(approve[2] === "approve" ? "approved" : "rejected", approve[1]).run();
       return new Response(null, { status: 303, headers: { location: "/admin" } });
     }
-    let stats = {}, items = [], sources = SOURCE_REGISTRY;
+    const marketApprove = path.match(/^\/admin\/market\/([^/]+)\/(approve|reject)$/);
+    if (marketApprove && request.method === "POST" && env.DB) {
+      await env.DB.prepare("UPDATE market_listings SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending'").bind(marketApprove[2] === "approve" ? "approved" : "rejected", marketApprove[1]).run();
+      return new Response(null, { status: 303, headers: { location: "/admin" } });
+    }
+    let stats = {}, items = [], sources = SOURCE_REGISTRY, marketItems = [];
     if (env.DB) {
       const counts = (await env.DB.prepare("SELECT status,COUNT(*) count FROM news_items GROUP BY status").all()).results || [];
       stats = Object.fromEntries(counts.map((row) => [row.status, row.count]));
       items = await getNews(env, url, "pending");
       sources = (await env.DB.prepare("SELECT * FROM sources ORDER BY trust_tier,name").all()).results || [];
       stats.sources = sources.length; stats.errors = sources.filter((source) => source.last_error).length;
+      marketItems = await queryMarketListings(env, "pending", 100);
+      stats.marketPending = marketItems.length;
     }
-    return html(adminPage(stats, items, sources));
+    return html(adminPage(stats, items, sources, marketItems));
   }
   if (path === "/" || path === "/index.html") {
     const categoryUrl = (category) => { const filtered = new URL(url); filtered.searchParams.set("category", category); return filtered; };
@@ -180,6 +196,8 @@ async function route(request, env, ctx) {
     return html(videoLibraryPage(await getNews(env, url), { theme, year: url.searchParams.get("year") || "" }));
   }
   if (path === "/members") return html(membersPage());
+  if (path === "/market") return html(marketPage(await queryMarketListings(env)));
+  if (path === "/market/new") return html(marketNewPage(env.LIFF_ID));
   if (path === "/calendar") return html(simplePage("活動行事曆", "只整理有明確來源與日期的活動；售票規則請以主辦單位公告為準。", [["演唱會與售票","已審核的場次、售票與入場提醒。","/news?category=concert"],["新歌與專輯","發行日期與官方收聽入口。","/news?category=release"]]));
   if (path === "/projects") return html(simplePage("CARAT 應援專區", "只呈現已有官方來源的應援與作品資訊，不放置尚無內容的空入口。", [["官方應援方法","查看官方歌曲應援口號與教學。","/news?category=support"],["新歌與作品","查看最新作品與官方來源。","/news?category=release"]]));
   if (path === "/settings") return html(simplePage("通知與本命設定", "LINE 綁定後可選擇成員與消息類型；第一版先完成資料與帳號基礎。", [["選擇本命","13 位成員快速入口。","/members"],["最新情報","查看目前已審核內容。","/news"]]));
